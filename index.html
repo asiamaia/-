@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F1EEE8">
+<meta name="description" content="Дневник самонаблюдения: записи о еде, месте, чувствах и мыслях. Заполняется в телефоне.">
+<title>Дневник самонаблюдения</title>
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Oswald:wght@500;700&family=Playfair+Display:ital,wght@1,500&display=swap">
+<style>
+/* Layout: одна колонка под телефон, запись = карточка, без закреплённых элементов: форма открывается на месте списка */
+:root{
+  --paper:#F1EEE8; --card:#FAF8F4; --ink:#16181B; --muted:#5E6266; --line:#D8D4CC;
+  --clay:#A8553C; --clay-soft:#F0DDD4; --on-clay:#FFFFFF; --steel:#B9BDC1; --shadow:rgba(22,24,27,.08);
+  --f-display:"Oswald","Arial Narrow",Arial,sans-serif;
+  --f-accent:"Playfair Display",Georgia,serif;
+  --f-body:"Montserrat",-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#16181B; --card:#202327; --ink:#F1EEE8; --muted:#A9ADB1; --line:#34383D;
+  --clay:#E8BFAE; --clay-soft:#3B2D28; --on-clay:#16181B; --steel:#6B7075; --shadow:rgba(0,0,0,.3); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#16181B; --card:#202327; --ink:#F1EEE8; --muted:#A9ADB1; --line:#34383D;
+  --clay:#E8BFAE; --clay-soft:#3B2D28; --on-clay:#16181B; --steel:#6B7075; --shadow:rgba(0,0,0,.3); color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:20px calc(32px + env(safe-area-inset-bottom,0px))}
+.wrap{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--clay);outline-offset:2px}
+
+header h1{margin:0;font-family:var(--f-display);font-weight:700;text-transform:uppercase;font-size:34px;line-height:1.05;letter-spacing:.01em;text-wrap:balance}
+header h1 em{display:block;font-family:var(--f-accent);font-style:italic;font-weight:500;text-transform:none;font-size:32px;color:var(--clay);letter-spacing:0}
+header p{margin:8px 0 0;color:var(--muted);font-size:14px}
+
+details.help{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:0 16px}
+details.help summary{padding:14px 0;font-weight:600;list-style:none;display:flex;justify-content:space-between;align-items:center}
+details.help summary::-webkit-details-marker{display:none}
+details.help summary::after{content:"+";font-family:var(--f-display);font-size:22px;color:var(--clay)}
+details.help[open] summary::after{content:"–"}
+details.help ul{margin:0 0 16px;padding-left:18px;display:grid;gap:8px;font-size:15px}
+
+.daynav{display:flex;align-items:center;gap:8px}
+.daynav .lbl{flex:1;text-align:center;min-width:0}
+.daynav .lbl b{display:block;font-family:var(--f-display);font-weight:500;text-transform:uppercase;letter-spacing:.04em;font-size:20px}
+.daynav .lbl span{font-size:13px;color:var(--muted)}
+.arrow{width:48px;height:48px;border-radius:50%;border:1px solid var(--line);background:var(--card);font-size:20px;display:grid;place-items:center}
+.arrow:disabled{opacity:.35;cursor:default}
+
+.list{display:flex;flex-direction:column;gap:12px}
+.entry{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;text-align:left;width:100%;display:flex;flex-direction:column;gap:8px;box-shadow:0 1px 2px var(--shadow)}
+.entry.example{border-style:dashed;box-shadow:none}
+.entry .top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.time{font-family:var(--f-display);font-weight:500;font-size:20px;font-variant-numeric:tabular-nums}
+.place{font-size:13px;color:var(--muted)}
+.badge{margin-left:auto;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--clay);color:var(--on-clay)}
+.badge.ex{background:transparent;color:var(--muted);border:1px solid var(--line)}
+.food{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:13px;padding:2px 10px;border-radius:999px;background:var(--clay-soft)}
+.note{margin:0;font-size:14px;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere;border-left:2px solid var(--steel);padding-left:10px}
+.empty{text-align:center;color:var(--muted);padding:24px 8px;border:1px dashed var(--line);border-radius:16px}
+
+.share{display:flex;gap:8px;flex-wrap:wrap}
+.btn{min-height:48px;padding:10px 18px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-weight:600;font-size:15px}
+.share .btn{flex:1 1 140px}
+.btn.primary{background:var(--clay);color:var(--on-clay);border-color:var(--clay)}
+.btn.ghost{background:transparent}
+.btn.danger{color:var(--clay);border-color:var(--clay);background:transparent}
+
+.big{width:100%;font-size:17px;min-height:56px;font-family:var(--f-display);text-transform:uppercase;letter-spacing:.06em;font-weight:500;touch-action:manipulation}
+.view{display:flex;flex-direction:column;gap:20px}
+
+/* Форма */
+.sheet form{display:flex;flex-direction:column;gap:22px}
+.sheet .head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.sheet h2{margin:0;font-family:var(--f-display);text-transform:uppercase;font-weight:700;font-size:24px}
+.field{display:flex;flex-direction:column;gap:8px;min-width:0}
+.field>label,.field>.lab{font-weight:600;font-size:15px}
+.hint{font-size:13px;color:var(--muted);margin-top:-4px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+input[type=time],input[type=date],input[type=text],textarea{width:100%;font:inherit;font-size:16px;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;min-height:50px}
+textarea{resize:vertical;min-height:96px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:42px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:15px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.seg .chip{border-radius:12px;min-height:50px;font-weight:600}
+.seg .chip.yes[aria-pressed="true"]{background:var(--clay);border-color:var(--clay);color:var(--on-clay)}
+.err{color:var(--clay);font-size:14px;font-weight:600}
+.confirm{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:12px;border:1px solid var(--clay);border-radius:12px}
+.confirm span{flex:1 1 100%;font-weight:600}
+.confirm .btn{flex:1}
+.actions{display:flex;gap:8px}
+.actions .primary{flex:1}
+.btn{touch-action:manipulation}
+
+.toast{background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:12px;font-size:14px;text-align:center}
+.fallback textarea{min-height:180px;font-size:14px}
+.nojs{border:1px solid var(--clay);border-radius:14px;padding:14px 16px;background:var(--card)}
+.nojs p{margin:6px 0 0;font-size:15px}
+.warn{font-size:13px;color:var(--clay);text-align:center}
+footer{font-size:12px;color:var(--muted);text-align:center;text-transform:uppercase;letter-spacing:.08em}
+@media (prefers-reduced-motion:no-preference){.sheet:not([hidden]){animation:up .2s ease-out}@keyframes up{from{transform:translateY(12px);opacity:.6}to{transform:none;opacity:1}}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>Дневник<em>самонаблюдения</em></h1>
+    <p>Одна запись на каждый приём пищи, перекус или напиток.</p>
+  </header>
+
+  <details class="help" id="help">
+    <summary>Как заполнять</summary>
+    <ul>
+      <li>Записывай сразу после еды. Вечером по памяти многое теряется.</li>
+      <li>Отмечай всё: перекусы на ходу, кусочек «на пробу», сладкие напитки.</li>
+      <li>Количество пиши как удобно: «тарелка», «горсть», «две печеньки». Считать калории не нужно.</li>
+      <li>«Слишком много» отмечай по своему ощущению. Это наблюдение, без оценки себя.</li>
+      <li>Записи хранятся только в этом телефоне. Чтобы показать их психологу, нажми «Скопировать» и вставь текст в сообщение.</li>
+    </ul>
+  </details>
+
+  <noscript>
+    <style>#main,.help{display:none!important}</style>
+    <div class="nojs">
+      <b>Дневник открыт в режиме просмотра, поэтому кнопки не работают.</b>
+      <p>Скопируй ссылку и открой её в браузере: Safari на iPhone или Chrome на Android.</p>
+    </div>
+  </noscript>
+  <div class="view" id="main">
+  <nav class="daynav" aria-label="Выбор дня">
+    <button class="arrow" id="prev" aria-label="Предыдущий день">←</button>
+    <div class="lbl"><b id="dayTitle">Сегодня</b><span id="daySub"></span></div>
+    <button class="arrow" id="next" aria-label="Следующий день">→</button>
+  </nav>
+
+  <button type="button" class="btn primary big" id="addBtn">+ Добавить запись</button>
+  <div class="toast" id="toast" role="status" hidden></div>
+
+  <section class="list" id="list" aria-live="polite"></section>
+
+  <div class="share">
+    <button class="btn" id="copyDay">Скопировать день</button>
+    <button class="btn" id="copyWeek">Скопировать 7 дней</button>
+  </div>
+  <div class="fallback" id="fallback" hidden>
+    <p class="hint">Телефон не дал скопировать автоматически. Выдели текст ниже и скопируй вручную.</p>
+    <textarea id="fallbackText" readonly></textarea>
+  </div>
+  <p class="warn" id="storeWarn" hidden>Браузер не даёт сохранять записи. Они пропадут после закрытия страницы, поэтому скопируй их до выхода.</p>
+  </div>
+
+<section class="sheet" id="sheet" hidden aria-labelledby="sheetTitle">
+  <form id="form" novalidate>
+    <div class="head">
+      <h2 id="sheetTitle">Новая запись</h2>
+    </div>
+
+    <div class="row2">
+      <div class="field"><label for="f-date">День</label><input type="date" id="f-date"></div>
+      <div class="field"><label for="f-time">Время</label><input type="time" id="f-time"></div>
+    </div>
+
+    <div class="field">
+      <label for="f-food">Еда и напитки</label>
+      <textarea id="f-food" rows="3" placeholder="Например: гречка с курицей, салат, чай с двумя конфетами"></textarea>
+      <span class="err" id="foodErr" hidden>Напиши, что было из еды или напитков.</span>
+    </div>
+
+    <div class="field">
+      <span class="lab" id="placeLab">Где</span>
+      <div class="chips" id="placeChips" role="group" aria-labelledby="placeLab"></div>
+      <input type="text" id="f-place" placeholder="Своё место" aria-label="Своё место">
+    </div>
+
+    <div class="field">
+      <span class="lab" id="tmLab">Было ощущение, что съедено слишком много?</span>
+      <div class="seg" role="group" aria-labelledby="tmLab">
+        <button type="button" class="chip" id="tmNo" aria-pressed="true">Нет</button>
+        <button type="button" class="chip yes" id="tmYes" aria-pressed="false">Да</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <span class="lab" id="feelLab">Чувства перед едой</span>
+      <span class="hint">Можно выбрать несколько</span>
+      <div class="chips" id="feelChips" role="group" aria-labelledby="feelLab"></div>
+      <input type="text" id="f-feel" placeholder="Своё чувство" aria-label="Своё чувство">
+    </div>
+
+    <div class="field">
+      <label for="f-note">События и мысли</label>
+      <span class="hint">Что происходило до еды? Какие мысли были в голове?</span>
+      <textarea id="f-note" rows="3" placeholder="Например: тяжёлый разговор с начальником, мысль «после такого дня можно себя порадовать»"></textarea>
+    </div>
+
+    <div id="delZone" hidden>
+      <button type="button" class="btn danger" id="delBtn" style="width:100%">Удалить запись</button>
+      <div class="confirm" id="delConfirm" hidden>
+        <span>Удалить эту запись?</span>
+        <button type="button" class="btn danger" id="delYes">Удалить</button>
+        <button type="button" class="btn" id="delNo">Оставить</button>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="btn ghost" id="cancelBtn">Отмена</button>
+      <button type="submit" class="btn primary big" id="saveBtn">Сохранить</button>
+    </div>
+  </form>
+</section>
+  <footer>Ася Маяцкая</footer>
+</div>
+
+<script>
+(function(){
+  var KEY='asya-diary-v1';
+  var PLACES=['Дома за столом','Перед экраном','На работе','В машине','На ходу','В кафе','В гостях'];
+  var FEELINGS=['Голод','Усталость','Тревога','Скука','Раздражение','Грусть','Одиночество','Радость','Спокойствие'];
+  var EXAMPLE={time:'19:40',place:'Перед экраном',food:'Пачка чипсов, половина шоколадки, сладкий чай',tooMuch:true,feelings:['Усталость','Раздражение'],note:'Длинный день, хотелось хоть немного выдохнуть. Мысль: «весь день держусь, теперь можно».'};
+
+  var $=function(id){return document.getElementById(id)};
+  var entries=load(), day=iso(new Date()), editId=null, form={};
+
+  function load(){try{var r=localStorage.getItem(KEY);var a=r?JSON.parse(r):[];return Array.isArray(a)?a:[]}catch(e){return []}}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(entries))}catch(e){$('storeWarn').hidden=false}}
+  function iso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+  function parse(s){var p=s.split('-').map(Number);return new Date(p[0],p[1]-1,p[2])}
+  function shift(s,n){var d=parse(s);d.setDate(d.getDate()+n);return iso(d)}
+  function nowTime(){var d=new Date();return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
+  function fmt(s,opts){try{return parse(s).toLocaleDateString('ru-RU',opts)}catch(e){return s}}
+  function el(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e}
+  function byTime(a,b){return (a.date+a.time).localeCompare(b.date+b.time)}
+
+  function renderDay(){
+    var today=iso(new Date());
+    $('dayTitle').textContent= day===today?'Сегодня': day===shift(today,-1)?'Вчера': fmt(day,{weekday:'long'});
+    $('daySub').textContent=fmt(day,{day:'numeric',month:'long'});
+    $('next').disabled = day>=today;
+    var list=$('list');list.innerHTML='';
+    var items=entries.filter(function(e){return e.date===day}).sort(byTime);
+    if(!items.length){
+      if(!entries.length){list.appendChild(card(EXAMPLE,true));
+        list.appendChild(el('p','hint','Так выглядит запись. Пример исчезнет, когда появится первая твоя.'));}
+      else list.appendChild(el('div','empty','За этот день записей пока нет'));
+    }
+    items.forEach(function(e){list.appendChild(card(e,false))});
+  }
+
+  function card(e,isEx){
+    var c=el(isEx?'div':'button','entry'+(isEx?' example':''));
+    if(!isEx){c.type='button';c.setAttribute('aria-label','Изменить запись '+e.time);c.onclick=function(){openForm(e)}}
+    var top=el('div','top');top.appendChild(el('span','time',e.time||'--:--'));
+    if(e.place)top.appendChild(el('span','place',e.place));
+    if(isEx)top.appendChild(el('span','badge ex','Пример'));
+    else if(e.tooMuch)top.appendChild(el('span','badge','Слишком много'));
+    c.appendChild(top);
+    if(isEx&&e.tooMuch){var b=el('div','tags');var t=el('span','badge','Слишком много');t.style.marginLeft='0';b.appendChild(t);c.appendChild(b)}
+    if(e.food)c.appendChild(el('p','food',e.food));
+    if(e.feelings&&e.feelings.length){var tg=el('div','tags');e.feelings.forEach(function(f){tg.appendChild(el('span','tag',f))});c.appendChild(tg)}
+    if(e.note)c.appendChild(el('p','note',e.note));
+    return c;
+  }
+
+  function chips(box,options,multi,getSel,setSel){
+    box.innerHTML='';
+    options.forEach(function(o){
+      var b=el('button','chip',o);b.type='button';
+      b.setAttribute('aria-pressed',String(getSel().indexOf(o)>-1));
+      b.onclick=function(){var s=getSel().slice(),i=s.indexOf(o);
+        if(multi){if(i>-1)s.splice(i,1);else s.push(o)}else{s=i>-1?[]:[o]}
+        setSel(s);chips(box,options,multi,getSel,setSel)};
+      box.appendChild(b);
+    });
+  }
+  function drawChips(){
+    chips($('placeChips'),PLACES,false,function(){return form.place?[form.place]:[]},function(s){form.place=s[0]||'';if(form.place)$('f-place').value=''});
+    chips($('feelChips'),FEELINGS,true,function(){return form.feelings},function(s){form.feelings=s});
+  }
+  function setTM(v){form.tooMuch=v;$('tmYes').setAttribute('aria-pressed',String(v));$('tmNo').setAttribute('aria-pressed',String(!v))}
+
+  function openForm(e){
+    editId=e?e.id:null;
+    $('sheetTitle').textContent=e?'Запись':'Новая запись';
+    $('f-date').value=e?e.date:day; $('f-date').max=iso(new Date());
+    $('f-time').value=e?e.time:(day===iso(new Date())?nowTime():'');
+    $('f-food').value=e?e.food:''; $('f-note').value=e?e.note:'';
+    var pl=e?e.place:''; var custom=pl&&PLACES.indexOf(pl)<0;
+    form={place:custom?'':pl,feelings:e?e.feelings.filter(function(f){return FEELINGS.indexOf(f)>-1}):[],tooMuch:false};
+    $('f-place').value=custom?pl:'';
+    $('f-feel').value=e?e.feelings.filter(function(f){return FEELINGS.indexOf(f)<0}).join(', '):'';
+    setTM(e?!!e.tooMuch:false); drawChips();
+    $('foodErr').hidden=true; $('delZone').hidden=!e; $('delConfirm').hidden=true; $('delBtn').hidden=false;
+    $('main').hidden=true; $('help').hidden=true; $('sheet').hidden=false; toTop();
+  }
+  function closeForm(){$('sheet').hidden=true;$('main').hidden=false;$('help').hidden=false;editId=null;toTop()}
+  function toTop(){try{window.scrollTo(0,0)}catch(_){}try{document.querySelector('header').scrollIntoView({block:'start'})}catch(_){}}
+
+  $('saveBtn').addEventListener('click',function(ev){
+    ev.preventDefault();
+    var food=$('f-food').value.trim();
+    if(!food){$('foodErr').hidden=false;$('f-food').focus();return}
+    var own=$('f-place').value.trim();
+    var extra=$('f-feel').value.split(',').map(function(s){return s.trim()}).filter(Boolean);
+    var rec={id:editId||String(Date.now())+Math.random().toString(36).slice(2,6),
+      date:$('f-date').value||day,time:$('f-time').value||nowTime(),food:food,
+      place:own||form.place||'',tooMuch:form.tooMuch,feelings:form.feelings.concat(extra),note:$('f-note').value.trim()};
+    if(editId)entries=entries.map(function(x){return x.id===editId?rec:x});else entries.push(rec);
+    var was=editId; save(); day=rec.date; closeForm(); renderDay(); toast(was?'Изменения сохранены':'Запись сохранена');
+  });
+  $('form').addEventListener('submit',function(ev){ev.preventDefault();$('saveBtn').click()});
+  $('f-place').addEventListener('input',function(){if(this.value.trim()&&form.place){form.place='';drawChips()}});
+  $('tmYes').onclick=function(){setTM(true)}; $('tmNo').onclick=function(){setTM(false)};
+  $('cancelBtn').onclick=closeForm;
+  $('delBtn').onclick=function(){$('delConfirm').hidden=false;this.hidden=true};
+  $('delNo').onclick=function(){$('delConfirm').hidden=true;$('delBtn').hidden=false};
+  $('delYes').onclick=function(){var id=editId;entries=entries.filter(function(x){return x.id!==id});save();closeForm();renderDay();toast('Запись удалена')};
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!$('sheet').hidden)closeForm()});
+
+  $('addBtn').addEventListener('click',function(){openForm(null)});
+  $('prev').onclick=function(){day=shift(day,-1);renderDay()};
+  $('next').onclick=function(){if(day<iso(new Date())){day=shift(day,1);renderDay()}};
+
+  function dayText(d){
+    var items=entries.filter(function(e){return e.date===d}).sort(byTime);
+    if(!items.length)return '';
+    var out=[fmt(d,{weekday:'long',day:'numeric',month:'long'}).toUpperCase()];
+    items.forEach(function(e){
+      out.push('');
+      out.push(e.time+(e.place?' · '+e.place:'')+(e.tooMuch?' · слишком много':''));
+      out.push('Еда и напитки: '+e.food);
+      if(e.feelings.length)out.push('Чувства: '+e.feelings.join(', ').toLowerCase());
+      if(e.note)out.push('События и мысли: '+e.note);
+    });
+    return out.join('\n');
+  }
+  function copy(days){
+    var blocks=days.map(dayText).filter(Boolean);
+    if(!blocks.length){toast(days.length>1?'За эти 7 дней записей нет':'За этот день записей нет');return}
+    var text='Дневник самонаблюдения\n\n'+blocks.join('\n\n* * *\n\n');
+    $('fallback').hidden=true;
+    var fb=function(){$('fallbackText').value=text;$('fallback').hidden=false;$('fallbackText').focus();$('fallbackText').select()};
+    try{navigator.clipboard.writeText(text).then(function(){toast('Скопировано. Вставь в сообщение психологу')},fb)}catch(e){fb()}
+  }
+  $('copyDay').onclick=function(){copy([day])};
+  $('copyWeek').onclick=function(){var a=[];for(var i=6;i>=0;i--)a.push(shift(day,-i));copy(a)};
+
+  var tt;function toast(m){var t=$('toast');t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(function(){t.hidden=true},3000)}
+
+  renderDay();
+})();
+</script>
+
+</body>
+</html>
